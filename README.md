@@ -2,7 +2,7 @@
 
 This is an implementation for a simple HTTP service (with Java & maven) using Lagom framework https://www.lagomframework.com
 
-To interact with this service you can
+To interact with this service:
 ```
 1- `GET` request to `/api/basket/{uuid}` to get the full user basket info
 ```
@@ -11,6 +11,8 @@ and return DONE when adding a new item to the user basket using a
 ```
 2- `PUT` request to `/api/basket/{uuid}` to add or replace an item in the user basket
 ```
+
+3- Check your cassendra DB to view how Lagom saved your events.
 
 ### How to use:
 
