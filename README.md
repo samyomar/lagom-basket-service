@@ -31,12 +31,11 @@ curl http://localhost:9000/api/basket/c78383b8-208d-4a3b-a709-1cbc463dd541
 
 The basket will be empty, So lets add a new item to the basket (use any random UUID for userID and ItemID)
 ```
-curl -H "Content-Type: application/json" -d '{"uuid": "c9f3c98b-e680-4090-bfac-c60aca3d1db7","quantity": "2","price": "10"}' -X PUT http://localhost:9000/api/basket/c78383b8-208d-4a3b-a709-1cbc463dd541
+curl -H "Content-Type: application/json" -d "{\"userUuid\":\"73947738-d5f4-453c-b476-6ac6ab6fb00e\" ,\"itemId\": \"c9f3c98b-e680-4090-bfac-c60aca3d1db7\",\"quantity\": 2,\"price\": 10}" -X PUT http://localhost:9000/api/basket/a0e55f06-7f2a-4b18-a512-d83ed82b8023
 ```
-
 Then try to run the same command with a new ItemUUID , QTY and price (if the same it will just replace)
 ```
-curl -H "Content-Type: application/json" -d '{"uuid": "3eee6d5d-df32-451d-84b9-6624af588b05","quantity": "3","price": "30"}' -X PUT http://localhost:9000/api/basket/c78383b8-208d-4a3b-a709-1cbc463dd541
+curl -H "Content-Type: application/json" -d "{\"userUuid\":\"73947738-d5f4-453c-b476-6ac6ab6fb00e\" ,\"itemId\": \"c9f3c98b-e680-4090-bfac-c60aca3d1db7\",\"quantity\": 2,\"price\": 10}" -X PUT http://localhost:9000/api/basket/a0e55f06-7f2a-4b18-a512-d83ed82b8023
 ```
 Then use get command to check the basket info, it should be filled with your items
 
