@@ -62,5 +62,6 @@ to understand Lagom framework properly you need to be familiar with the followin
 - Functional Programming.
 - Microservices (basic concepts).
 - Event Sourcing and QCRS -> https://docs.microsoft.com/en-us/azure/architecture/patterns/cqrs
+- Akka https://akka.io/
 
 
