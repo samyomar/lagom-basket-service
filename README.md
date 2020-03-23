@@ -1,11 +1,18 @@
-## lagom-basket-service
-User basket service implementation using Lagom framework
+## Lagom Basket Service
+A simple user basket microservice implementation using Lagom framework.
 
 This is an implementation for an HTTP service (using Java) with Lagom framework https://www.lagomframework.com:
-This service return the full user basket as a response to a `GET` request to `/api/basket/{uuid}`
-and return DONE when adding a new item to the user basket using a `PUT` request to `/api/basket/{uuid}` 
+This service return the full user basket as a response to a
+```
+`GET` request to `/api/basket/{uuid}`
+```
 
-## How to use examples:
+and return DONE when adding a new item to the user basket using a 
+```
+`PUT` request to `/api/basket/{uuid}` 
+```
+
+## How to use:
 
 from CMD go to your repo directory and run the service --> mvn lagom:runAll
 
