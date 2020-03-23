@@ -33,7 +33,7 @@ The basket will be empty
 ```
 {"uuid":"a0e55f06-7f2a-4b18-a512-d83ed82b8026","userUuid":"","items":[],"subTotal":"0.0","tax":"0.0","total":"0.0"}
 ```
-So lets add a new item to the basket (use any random UUID for userID and ItemID)
+So lets add a new item to the basket (for simplicity I added userUuid within the PUT body, it should be retrieved from Request Header )
 ```
 curl -H "Content-Type: application/json" -d "{\"userUuid\":\"73947738-d5f4-453c-b476-6ac6ab6fb00e\" ,\"itemId\": \"c9f3c98b-e680-4090-bfac-c60aca3d1db7\",\"quantity\": 2,\"price\": 10}" -X PUT http://localhost:9000/api/basket/a0e55f06-7f2a-4b18-a512-d83ed82b8026
 ```
@@ -46,6 +46,7 @@ Then try to run the same command but with a new ItemUUID , QTY and price (if the
 curl -H "Content-Type: application/json" -d "{\"userUuid\":\"73947738-d5f4-453c-b476-6ac6ab6fb00e\" ,\"itemId\": \"c9f3c98b-e680-4090-bfac-c60aca3d1d88\",\"quantity\": 3,\"price\": 20}" -X PUT http://localhost:9000/api/basket/a0e55f06-7f2a-4b18-a512-d83ed82b8026
 ```
 Then use get command to check the basket info, it should be filled with your items
+
 ```
 {"uuid":"a0e55f06-7f2a-4b18-a512-d83ed82b8026","userUuid":"73947738-d5f4-453c-b476-6ac6ab6fb00e","items":[{"uuid":"c9f3c98b-e680-4090-bfac-c60aca3d1db7","quantity":"2","price":"10.0"},{"uuid":"c9f3c98b-e680-4090-bfac-c60aca3d1d88","quantity":"3","price":"20.0"}],"subTotal":"80.0","tax":"5.0","total":"85.0"}
 ```
