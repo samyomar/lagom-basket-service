@@ -84,27 +84,6 @@ curl https://www.uuidgenerator.net/api/version4	)
 ***Note: 
 PUT is used to create or update a resource , so if you try to insert the same item multiple times it will only replace it because PUT is idempotent.
 
-### Basket structure:
-      {
-        "uuid": "c78383b8-208d-4a3b-a709-1cbc463dd541",
-        "userUuid": "72081821-f9e5-4cc8-876b-84f67ad83156",
-        "items": [
-          {
-            "uuid": "c9f3c98b-e680-4090-bfac-c60aca3d1db7",
-            "quantity": "2",
-            "price": "10"
-          },
-          {
-            "uuid": "d60b5276-16a2-4aa2-9df7-dd09eba10171",
-            "quantity": "1",
-            "price": "30"
-          }
-        ],
-        "subTotal": "50",
-        "tax": "5",
-        "total": "55"
-      }
-
 #### Assumptions & Future Work:
 - UserID value should be taken from Header, for simplicity we send it in PUT body.
 - Tax value is hardcoded for simplicity, it should be retrived dynamically from DB, external service or configuration files.
