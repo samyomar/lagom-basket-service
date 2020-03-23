@@ -1,7 +1,6 @@
 ## Lagom Basket Service
-A simple user basket microservice implementation using Lagom framework.
 
-This is an implementation for an HTTP service (using Java) with Lagom framework https://www.lagomframework.com:
+This is an implementation for a simple HTTP service (with Java) using Lagom framework https://www.lagomframework.com:
 This service return the full user basket as a response to a
 ```
 `GET` request to `/api/basket/{uuid}`
