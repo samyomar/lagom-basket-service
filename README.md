@@ -19,7 +19,7 @@ to Add new item to the basket -->
 curl -H "Content-Type: application/json" -d '{"uuid": "c9f3c98b-e680-4090-bfac-c60aca3d1db7","quantity": "2","price": "10"}' -X PUT http://localhost:9000/api/basket/c78383b8-208d-4a3b-a709-1cbc463dd541
 ```
 
-(You can get random UUID using --> 
+Hint: you can get random UUID using
 ```
 curl https://www.uuidgenerator.net/api/version4	)
 ```
@@ -51,9 +51,9 @@ PUT is used to create or update a resource , so if you try to insert the same it
 
 ## Prerequisites
 to understand Lagom framework properly you need to be familiar with the following concepts:
-       * Reactive Programming.
-       * Functional Programming.
-       * Microservices (basic concepts).
-       * Event Sourcing and QCRS -> https://docs.microsoft.com/en-us/azure/architecture/patterns/cqrs
+- Reactive Programming.
+- Functional Programming.
+- Microservices (basic concepts).
+- Event Sourcing and QCRS -> https://docs.microsoft.com/en-us/azure/architecture/patterns/cqrs
 
 
