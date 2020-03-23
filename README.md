@@ -75,7 +75,7 @@ PUT is used to create or update a resource , so if you try to insert the same it
 - Tax value is hardcoded for simplicity, it should be retrived dynamically from DB, external service or configuration files.
 - Communication with other services should be done by publishing an event to Kafka topic, or consumming from other subscribed topics.
 - Security checks needs to be implemented (authintication & authorization). So currently if userID is changed for the same basket ID it will just replace it with the new userID (a security validation should be added).
-
+- Unit Testing should be added.
 
 #### Prerequisites
 to understand Lagom framework properly you need to be familiar with the following concepts:
