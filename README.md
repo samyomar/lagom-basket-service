@@ -1,14 +1,15 @@
 ## Lagom Basket Service
 
-This is an implementation for a simple HTTP service (with Java) using Lagom framework https://www.lagomframework.com:
-This service return the full user basket as a response to a
+This is an implementation for a simple HTTP service (with Java) using Lagom framework https://www.lagomframework.com
+
+To interact with this service you can
 ```
-`GET` request to `/api/basket/{uuid}`
+1- `GET` request to `/api/basket/{uuid}` to get the full user basket info
 ```
 
 and return DONE when adding a new item to the user basket using a 
 ```
-`PUT` request to `/api/basket/{uuid}` 
+2- `PUT` request to `/api/basket/{uuid}` to add or replace an item in the user basket
 ```
 
 ### How to use:
