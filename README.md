@@ -1,7 +1,7 @@
 ## Lagom Basket Service
 
 This is an implementation for a simple HTTP service (with Java & maven) using Lagom framework https://www.lagomframework.com
-******This service is implemented using the ES-CQRS pattern
+This service is implemented using the ES-CQRS pattern
 
 To interact with this service:
 ```
