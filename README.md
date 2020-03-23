@@ -70,7 +70,6 @@ PUT is used to create or update a resource , so if you try to insert the same it
         "total": "55"
       }
 
-
 #### Assumptions & Future Work:
 - UserID value should be taken from Header, for simplicity we send it in PUT body.
 - Tax value is hardcoded for simplicity, it should be retrived dynamically from DB, external service or configuration files.
@@ -88,5 +87,20 @@ to understand Lagom framework properly you need to be familiar with the followin
 - Akka https://akka.io/
 - Java / scala
 - Maven / Sbt
+
+### For researchers
+Lagom is a microservices focused framework it provide many out of the box features like ES-CQRS and hot code reload, 
+But its not the only player in this domain, here is a list of other frameworks that really deserve a trial and open the door for in depth comparisons.
+
+* Axon Framework
+* Quarkus
+* Eventuate.io
+* axoniq.io
+* micronaut.io/
+* quarkus.io/
+* Spring Boot
+* MicroProfile
+
+
 
 
