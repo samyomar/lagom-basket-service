@@ -1,6 +1,7 @@
 ## Lagom Basket Service
 
 This is an implementation for a simple HTTP service (with Java & maven) using Lagom framework https://www.lagomframework.com
+******This service is implemented using the ES-CQRS pattern
 
 To interact with this service:
 ```
@@ -12,7 +13,9 @@ and return DONE when adding a new item to the user basket using a
 2- `PUT` request to `/api/basket/{uuid}` to add or replace an item in the user basket
 ```
 
+```
 3- Check your cassendra DB to view how Lagom saved your events.
+```
 
 ### How to use:
 
