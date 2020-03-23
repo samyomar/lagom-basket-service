@@ -1,6 +1,6 @@
 ## Lagom Basket Service
 
-This is an implementation for a simple HTTP service (with Java) using Lagom framework https://www.lagomframework.com
+This is an implementation for a simple HTTP service (with Java & maven) using Lagom framework https://www.lagomframework.com
 
 To interact with this service you can
 ```
@@ -14,25 +14,35 @@ and return DONE when adding a new item to the user basket using a
 
 ### How to use:
 
-from CMD go to your repo directory and run the service --> mvn lagom:runAll
+from cmd go to your repo directory and run the service using this maven command, Lagom will run everything for you like cassendra DB, API Gateway with hot reload amazing feature.
+```
+mvn lagom:runAll
+```
 
-to GET basket info            -->  
+You can start to GET a basket info using any random UUID 
 ```
 curl http://localhost:9000/api/basket/c78383b8-208d-4a3b-a709-1cbc463dd541
 ```
 
-to Add new item to the basket -->  
+The basket will be empty, So lets add a new item to the basket (use any random UUID for userID and ItemID)
 ```
 curl -H "Content-Type: application/json" -d '{"uuid": "c9f3c98b-e680-4090-bfac-c60aca3d1db7","quantity": "2","price": "10"}' -X PUT http://localhost:9000/api/basket/c78383b8-208d-4a3b-a709-1cbc463dd541
 ```
 
-Hint: you can get random UUID using
+Then try to run the same command with a new ItemUUID , QTY and price (if the same it will just replace)
+```
+curl -H "Content-Type: application/json" -d '{"uuid": "3eee6d5d-df32-451d-84b9-6624af588b05","quantity": "3","price": "30"}' -X PUT http://localhost:9000/api/basket/c78383b8-208d-4a3b-a709-1cbc463dd541
+```
+Then use get command to check the basket info, it should be filled with your items
+
+
+Hint: you can get random UUID simply using this simple curl command
 ```
 curl https://www.uuidgenerator.net/api/version4	)
 ```
 
-Note: 
-PUT is used to create or update a resource , so if you try to insert the same item multible times it will only replace it because PUT is idempotent.
+***Note: 
+PUT is used to create or update a resource , so if you try to insert the same item multiple times it will only replace it because PUT is idempotent.
 
 ### Basket structure:
       {
@@ -68,5 +78,7 @@ to understand Lagom framework properly you need to be familiar with the followin
 - Microservices (basic concepts).
 - Event Sourcing and QCRS -> https://docs.microsoft.com/en-us/azure/architecture/patterns/cqrs
 - Akka https://akka.io/
+- Java / scala
+- Maven / Sbt
 
 
