@@ -81,7 +81,7 @@ PUT is used to create or update a resource , so if you try to insert the same it
 to understand Lagom framework properly you need to be familiar with the following concepts:
 - Reactive Programming.
 - Functional Programming.
-- Domain Driven Design (DDD) (bounded context, Aggrigator, Command, State, Event)
+- Domain Driven Design (DDD) (bounded context, aggregate , command, state, event)
 - Microservices (basic concepts).
 - Event Sourcing and QCRS -> https://docs.microsoft.com/en-us/azure/architecture/patterns/cqrs
 - Akka https://akka.io/
