@@ -12,23 +12,23 @@ public final class BasketView {
 
     public final String uuid;
     public final String userUuid;
-    public final List<ItemDTO> basketItems;
-    public final float subTotal;
-    public final float tax;
-    public final float total;
+    public final List<ItemDTO> items;
+    public final String subTotal;
+    public final String tax;
+    public final String total;
 
     @JsonCreator
-    public BasketView(String uuid, String userUuid, List<ItemDTO> basketItems, float subTotal, float total, float tax) {
+    public BasketView(String uuid, String userUuid, List<ItemDTO> items, String subTotal, String tax , String total) {
         this.uuid = Preconditions.checkNotNull(uuid, "uuid");
         this.userUuid = Preconditions.checkNotNull(userUuid, "userUuid");
-        this.basketItems = Preconditions.checkNotNull(basketItems, "items");
+        this.items = Preconditions.checkNotNull(items, "items");
         this.subTotal = subTotal;
         this.tax = tax;
         this.total = total;
     }
 
     public boolean hasItem(String itemId) {
-        return basketItems.stream().anyMatch(basketItem -> basketItem.getItemId().equals(itemId));
+        return items.stream().anyMatch(basketItem -> basketItem.uuid.equals(itemId));
     }
 
 

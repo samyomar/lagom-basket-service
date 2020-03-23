@@ -8,13 +8,13 @@ import lombok.Value;
 @JsonDeserialize
 public class ItemDTO {
 
-    public final String itemId;
-    public final int quantity;
-    public final float price;
+    public final String uuid;
+    public final String quantity;
+    public final String price;
 
     @JsonCreator
-    public ItemDTO(String itemId, int quantity, float price) {
-        this.itemId = itemId;
+    public ItemDTO(String uuid, String quantity, String price) {
+        this.uuid = uuid;
         this.quantity = quantity;
         this.price = price;
     }

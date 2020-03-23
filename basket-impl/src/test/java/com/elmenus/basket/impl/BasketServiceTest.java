@@ -7,7 +7,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import com.elmenus.basket.api.GreetingMessage;
 import com.elmenus.basket.api.BasketService;
 
 public class BasketServiceTest {

@@ -20,10 +20,6 @@ import static com.lightbend.lagom.javadsl.api.Service.*;
 public interface BasketService extends Service {
 
 
-  ServiceCall<NotUsed, String> hello(String id);
-  ServiceCall<GreetingMessage, Done> useGreeting(String id);
-
-
   ServiceCall<NotUsed, BasketView> getBasket(UUID basketUUID);
   ServiceCall<BasketItem, Done> addItem(UUID basketUUID);
 
@@ -37,10 +33,7 @@ public interface BasketService extends Service {
     // @formatter:off
     return named("basket").withCalls(
             restCall(Method.GET, "/api/basket/:basketUUID",this::getBasket),
-            restCall(Method.PUT, "/api/basket/:basketUUID",this::addItem),
-
-            restCall(Method.GET, "/api/basket/hello/:id",this::hello),
-            restCall(Method.POST, "/api/basket/hello/:id",this::useGreeting)
+            restCall(Method.PUT, "/api/basket/:basketUUID",this::addItem)
       ).withTopics(
           //topic("hello-events", this::helloEvents)
           // Kafka partitions messages, messages within the same partition will
@@ -50,6 +43,5 @@ public interface BasketService extends Service {
           // name as the partition key.
          // .withProperty(KafkaProperties.partitionKeyStrategy(), BasketEvent::getName)
         ).withAutoAcl(true);
-    // @formatter:on
   }
 }

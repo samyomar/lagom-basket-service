@@ -9,6 +9,7 @@ import com.lightbend.lagom.serialization.CompressedJsonable;
 import com.lightbend.lagom.serialization.Jsonable;
 import lombok.Value;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -20,46 +21,6 @@ import java.util.UUID;
   * an aggregate supports.
   */
 public interface BasketCommand extends Jsonable {
-
-  /**
-  * A command to switch the greeting message.
-  * <p>
-  * It has a reply type of {@link Confirmation}, which is sent back to the caller
-  * when all the events emitted by this command are successfully persisted.
-  */
-  @SuppressWarnings("serial")
-  @Value
-  @JsonDeserialize
-  final class UseGreetingMessage implements BasketCommand, CompressedJsonable {
-    public final String message;
-    public final ActorRef<Confirmation> replyTo;
-    
-    @JsonCreator
-    UseGreetingMessage(String message, ActorRef<Confirmation> replyTo) {
-      this.message = Preconditions.checkNotNull(message, "message");
-      this.replyTo = replyTo;
-    }
-  }
-
-  /**
-  * A command to say hello to someone using the current greeting message.
-  * <p>
-  * The reply type is {@link Greeting} and will contain the message to say to that
-  * person.
-  */
-  @SuppressWarnings("serial")
-  @Value
-  @JsonDeserialize
-  final class Hello implements BasketCommand {
-    public final String name;
-    public final ActorRef<Greeting> replyTo;
-    
-    @JsonCreator
-    Hello(String name, ActorRef<Greeting> replyTo) {
-      this.name = Preconditions.checkNotNull(name, "name");
-      this.replyTo = replyTo;
-    }
-  }
 
   @Value
   @JsonDeserialize
@@ -93,26 +54,7 @@ public interface BasketCommand extends Jsonable {
   }
 
   // The commands above will use different reply types (see below all the reply types).
-  
-
-
-
-  /**
-  * Reply type for a Hello command.
-  */
-  @Value
-  @JsonDeserialize
-  final class Greeting {
-    public final String message;
-    
-    public Greeting(String message) {
-
-      this.message = message;
-    }
-  }
-
-  //
-  // SHOPPING CART REPLIES
+  // User Basket Replies
   //
   interface Reply extends Jsonable {}
 
@@ -125,15 +67,14 @@ public interface BasketCommand extends Jsonable {
   @JsonDeserialize
   static final class Summary implements Reply {
 
-    public final Set<ItemDTO> items;
+    public final List<ItemDTO> items;
     public final String userID ;
     public final float subTotal;
     public final float tax;
     public final float total;
 
-
     @JsonCreator
-    Summary(Set<ItemDTO> items, String userID, float subTotal, float tax , float total) {
+    Summary(List<ItemDTO> items, String userID, float subTotal, float tax , float total) {
       this.items = items;
       this.userID=userID;
       this.subTotal=subTotal;

@@ -24,10 +24,11 @@ public class StreamServiceImpl implements StreamService {
     this.repository = repository;
   }
 
-  @Override
+ @Override
   public ServiceCall<Source<String, NotUsed>, Source<String, NotUsed>> directStream() {
-    return hellos -> completedFuture(
-      hellos.mapAsync(8, name ->  basketService.hello(name).invoke()));
+    return null ;
+    /* return hellos -> completedFuture(
+      hellos.mapAsync(8, name ->  basketService.hello(name).invoke()));*/
   }
 
   @Override

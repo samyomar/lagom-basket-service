@@ -10,7 +10,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import com.elmenus.stream.api.StreamService;
-import com.elmenus.basket.api.GreetingMessage;
 import com.elmenus.basket.api.BasketService;
 
 import java.net.URI;

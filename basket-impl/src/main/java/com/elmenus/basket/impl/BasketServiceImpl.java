@@ -51,39 +51,6 @@ public class BasketServiceImpl implements BasketService {
   }
 
 
-  @Override
-  public ServiceCall<NotUsed, String> hello(String id) {
-    return request -> {
-
-    // Look up the aggregete instance for the given ID.
-    EntityRef<BasketCommand> ref = clusterSharding.entityRefFor(BasketAggregate.ENTITY_TYPE_KEY, id);
-    // Ask the entity the Hello command.
-
-    return ref.
-      <BasketCommand.Greeting>ask(replyTo -> new Hello(id, replyTo), askTimeout)
-      .thenApply(greeting -> greeting.message);    };
-  }
-
-  @Override
-  public ServiceCall<GreetingMessage, Done> useGreeting(String id) {
-    return request -> {
-
-    // Look up the aggregete instance for the given ID.
-    EntityRef<BasketCommand> ref = clusterSharding.entityRefFor(BasketAggregate.ENTITY_TYPE_KEY, id);
-    // Tell the entity to use the greeting message specified.
-
-    return ref.
-      <BasketCommand.Confirmation>ask(replyTo -> new UseGreetingMessage(request.message, replyTo), askTimeout)
-          .thenApply(confirmation -> {
-              if (confirmation instanceof BasketCommand.Accepted) {
-                return Done.getInstance();
-              } else {
-                throw new BadRequest(((BasketCommand.Rejected) confirmation).reason);
-              }
-          });
-    };
-
-  }
 
   @Override
   public ServiceCall<NotUsed, BasketView> getBasket(UUID basketUUID) {
@@ -124,10 +91,7 @@ public class BasketServiceImpl implements BasketService {
   }
 
   private BasketView asBasketView(String id, BasketCommand.Summary summary) {
-    List<ItemDTO> items = new ArrayList<>();
-    for(ItemDTO item :summary.items){items.add(item);}
-
-    return new BasketView(id, summary.userID,items, 0,0,0);
+    return new BasketView(id, summary.userID,summary.items, summary.subTotal+"",summary.tax+"",summary.total+"");
   }
 
 

@@ -28,26 +28,9 @@ public interface BasketEvent extends Jsonable, AggregateEvent<BasketEvent> {
    */
   AggregateEventShards<BasketEvent> TAG = AggregateEventTag.sharded(BasketEvent.class, 4);
 
-  /**
-   * An event that represents a change in greeting message.
-   */
-  @SuppressWarnings("serial")
-  @Value
-  @JsonDeserialize
-  public final class GreetingMessageChanged implements BasketEvent {
-
-    public final String name;
-    public final String message;
-
-    @JsonCreator
-    public GreetingMessageChanged(String name, String message) {
-      this.name = Preconditions.checkNotNull(name, "name");
-      this.message = Preconditions.checkNotNull(message, "message");
-    }
-  }
 
   /**
-   * An event that represents adding new item to the user basket.
+   * An event that represents adding new item to the user basket with the tax value at this moment.
    */
   @SuppressWarnings("serial")
   @Value
@@ -56,30 +39,22 @@ public interface BasketEvent extends Jsonable, AggregateEvent<BasketEvent> {
 
     public final String uuid;
     public final String userUuid;
-    public final ItemDTO itemDto;
-    //public final String itemId;
-   // public final int quantity;
-   // public final float price;
+    public final String itemUuid;
+    public final int quantity;
+    public final float price;
+    public final float tax;
 
     @JsonCreator
-    public ItemAddedEvent(String uuid,  String userUuid , String itemId, int quantity, float price) {
+    public ItemAddedEvent(String uuid,  String userUuid , String itemUuid, int quantity, float price, float tax) {
        this.uuid= uuid;
        this.userUuid=userUuid;
-       this.itemDto=new ItemDTO(itemId,quantity,price);
+       this.itemUuid = itemUuid;
+       this.quantity=quantity;
+       this.price=price;
+       this.tax=tax;
     }
-
-  /*  @JsonCreator
-    public ItemAddedEvent(String uuid, String userUuid, ItemDTO itemDto) {
-      this.uuid = uuid;
-      this.userUuid = userUuid;
-      this.itemDto = itemDto;
-    }
-*/
 
   }
-
-
-
 
   @Override
   default AggregateEventTagger<BasketEvent> aggregateTag() {
