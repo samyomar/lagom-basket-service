@@ -3,14 +3,14 @@
 This is an implementation for a simple HTTP service (with Java & maven) using Lagom framework https://www.lagomframework.com
 This service is implemented using the ES-CQRS pattern with cassendra as the backend DB.
 
-### Lagom Service High Level Architecture
+#### Lagom Service High Level Architecture
 Lagom Persistence makes use of Event sourcing and CQRS to help achieve the decoupled architecture, So for any write operations you need to send commands, which may result in an event then the event handler update the state, for write operations in Lagom you have to implement [Read-Side Processor](https://blog.knoldus.com/persistent-read-side-lagom/)
 
 ![alt text](https://divyadua25.files.wordpress.com/2018/06/cqrss.png?resize=744%2C520)
 
 In our simple example we used a command for adding new item (write operation) and also we used a readonly command to read the status of the basket, for further complex or cross table queries you have to implement the read side processor.
 
-### What has implemented ?
+#### What has been implemented ?
 * Basket service to get the status of the basket (using GET) and to add new items to the basket (using PUT).
 * Unit tests, some unit tests examples implemneted to cover the business scanarios (in class BasketServiceTesting)
 * Business Validations (no user can add items to other users baskets, validations on QTY and Price, UUIDs should be valid)
@@ -27,17 +27,22 @@ This small microservice contains 2 services:
 ### How to use:
 
 from cmd go to your repo directory and run the service using this maven command, Lagom will run everything for you like cassendra DB, API Gateway with hot reload amazing feature.
-(in windows you might need to kill any process listining on port 9000 or change lagom 9000
-to find the procees id run on terminal this command -->   netstat -ano | findstr :9000
-then use this PID number in this command -->  taskkill /PID <PID_Value> /F
-This must be run with admin permissions.
-)
+(in windows you might need to kill any process listining on port 9000 or change lagom 9000)
+to find the procees id run on terminal this command   
+```
+netstat -ano | findstr :9000
+```
+then use this PID number in this command  
+```
+taskkill /PID <PID_Value> /F   (This must be run with admin permissions)
+```
 
+Start running your Lagom service
 ```
 mvn lagom:runAll
 ```
 
-You can start to GET a basket info using any random UUID 
+GET the basket info using any random UUID 
 ```
 curl http://localhost:9000/api/basket/a0e55f06-7f2a-4b18-a512-d83ed82b8026
 ```
@@ -48,14 +53,17 @@ The basket will be empty
   "uuid": "a0e55f06-7f2a-4b18-a512-d83ed82b8026",
   "userUuid": "",
   "items": [],
-  "subTotal": "0.0",
-  "tax": "0.0",
-  "total": "0.0"
+  "subTotal": "0"
+  "tax": "0",
+  "total": "0"
 }
 ```
 So lets add a new item to the basket (for simplicity I added userUuid within the PUT body, ideally it should be retrieved from Request Header for identification and authintication purposes)
 ```
-curl -H "Content-Type: application/json" -d "{\"userUuid\":\"73947738-d5f4-453c-b476-6ac6ab6fb00e\" ,\"itemId\": \"c9f3c98b-e680-4090-bfac-c60aca3d1db7\",\"quantity\": 2,\"price\": 10}" -X PUT http://localhost:9000/api/basket/a0e55f06-7f2a-4b18-a512-d83ed82b8026
+curl -H "Content-Type: application/json" 
+     -H "UserUuid: 1927a910-5045-43d6-9242-19b8c01a96cc"
+     -d "{\"uuid\": \"c9f3c98b-e680-4090-bfac-c60aca3d1db7\",\"quantity\": 2,\"price\": 10}"      
+     -X PUT http://localhost:9000/api/basket/a0e55f06-7f2a-4b18-a512-d83ed82b8026
 ```
 you will get
 ```
@@ -63,29 +71,32 @@ you will get
 ```
 Then try to run the same command but with a new ItemUUID , QTY and price (if the same it will just replace)
 ```
-curl -H "Content-Type: application/json" -d "{\"userUuid\":\"73947738-d5f4-453c-b476-6ac6ab6fb00e\" ,\"itemId\": \"c9f3c98b-e680-4090-bfac-c60aca3d1d88\",\"quantity\": 3,\"price\": 20}" -X PUT http://localhost:9000/api/basket/a0e55f06-7f2a-4b18-a512-d83ed82b8026
+curl -H "Content-Type: application/json" 
+     -H "UserUuid: 1927a910-5045-43d6-9242-19b8c01a96cc"
+     -d "{\"uuid\": \"c9f3c98b-e680-4090-bfac-c60aca3d1d88\",\"quantity\": 3,\"price\": 7}"      
+     -X PUT http://localhost:9000/api/basket/a0e55f06-7f2a-4b18-a512-d83ed82b8026
 ```
-Then you will get the following json representing the basket content after using the above GET command again.
+run the GET command above again, you will get the basket content like the following
 
 ```
 {
-  "uuid": "a0e55f06-7f2a-4b18-a512-d83ed82b8026",
-  "userUuid": "73947738-d5f4-453c-b476-6ac6ab6fb00e",
-  "items": [
-    {
-      "uuid": "c9f3c98b-e680-4090-bfac-c60aca3d1db7",
-      "quantity": "2",
-      "price": "10.0"
-    },
-    {
-      "uuid": "c9f3c98b-e680-4090-bfac-c60aca3d1d88",
-      "quantity": "3",
-      "price": "20.0"
-    }
-  ],
-  "subTotal": "80.0",
-  "tax": "5.0",
-  "total": "85.0"
+   "uuid": "a0e55f06-7f2a-4b18-a512-d83ed82b8026",
+   "userUuid": "1927a910-5045-43d6-9242-19b8c01a96cc",
+   "items": [
+      {
+         "uuid": "c9f3c98b-e680-4090-bfac-c60aca3d1db7",
+         "quantity": "2",
+         "price": "10"
+      },
+      {
+         "uuid": "c9f3c98b-e680-4090-bfac-c60aca3d1d88",
+         "quantity": "3",
+         "price": "7"
+      }
+   ],
+   "subTotal": "41",
+   "tax": "4.1",
+   "total": "45.1"
 }
 ```
 
