@@ -3,8 +3,7 @@
 This is an implementation for a simple HTTP service (with Java & maven) using Lagom framework https://www.lagomframework.com
 This service is implemented using the ES-CQRS pattern with cassendra as the backend DB.
 
-#### Lagom Service High Level Architecture
-Lagom Persistence makes use of Event sourcing and CQRS to help achieve the decoupled architecture, So for any write operations you need to send commands, which may result in an event then the event handler update the state, for write operations in Lagom you have to implement [Read-Side Processor](https://blog.knoldus.com/persistent-read-side-lagom/)
+Lagom makes use of Event sourcing and CQRS to help achieve the decoupled architecture, So for any write operations you need to send commands, which may result in an event then the event handler update the state, for write operations in Lagom you have to implement [Read-Side Processor](https://blog.knoldus.com/persistent-read-side-lagom/)
 
 ![alt text](https://divyadua25.files.wordpress.com/2018/06/cqrss.png?resize=744%2C520)
 
@@ -25,7 +24,6 @@ This small microservice contains 2 services:
 ```
 
 ### How to use:
-
 from cmd go to your repo directory and run the service using this maven command, Lagom will run everything for you like cassendra DB, API Gateway with hot reload amazing feature.
 (in windows you might need to kill any process listining on port 9000 or change lagom 9000)
 to find the procees id run on terminal this command   
@@ -97,6 +95,14 @@ run the GET command above again, you will get the basket content like the follow
    "subTotal": "41",
    "tax": "4.1",
    "total": "45.1"
+}
+```
+* Try to add the same item again with updated QTY or price, it will just be replaced (remember we use PUT)
+* Try to add a new item to an existing basket with a new userUuid , you will get the following response
+```
+{
+  "name": "BadRequest",
+  "detail": "This Basket belongs to another user, Access Denied."
 }
 ```
 
