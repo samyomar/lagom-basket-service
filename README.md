@@ -105,12 +105,10 @@ Hint: you can get random UUID simply using this simple curl command
 curl https://www.uuidgenerator.net/api/version4	)
 ```
 
-**** Note:
-
+#### Note:
 PUT is used to create or update a resource , so if you try to insert the same item multiple times it will only replace it because PUT is idempotent.
 
-**** Run Unit Tests
-
+#### Run Unit Tests
 To run the unit tests, use this command
 ```
 mvn test -Dtest=BasketServiceTesting -DfailIfNoTests=false
