@@ -125,7 +125,7 @@ public class BasketAggregate extends EventSourcedBehaviorWithEnforcedReplies<Bas
 
 
   private BasketCommand.Summary toSummary(BasketState basketState) {
-    return new BasketCommand.Summary(basketState.items,basketState.userUuid,basketState.subTotal,basketState.taxPercentage,basketState.total);
+    return new BasketCommand.Summary(basketState.items,basketState.userUuid,basketState.subTotal,basketState.tax,basketState.total);
   }
 
 

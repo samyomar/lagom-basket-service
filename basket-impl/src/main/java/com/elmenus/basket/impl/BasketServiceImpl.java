@@ -17,6 +17,7 @@ import com.lightbend.lagom.javadsl.server.HeaderServiceCall;
 import lombok.extern.java.Log;
 
 import javax.inject.Inject;
+import java.text.DecimalFormat;
 import java.time.Duration;
 import java.util.*;
 
@@ -100,18 +101,15 @@ public class BasketServiceImpl implements BasketService {
   private BasketView asBasketView(String id, BasketCommand.Summary summary) {
     List<BasketItem> basketItemList= new ArrayList();
     for(ItemDTO item:summary.items){
-      basketItemList.add( new BasketItem(item.itemUuid,formatToString(item.quantity),formatToString(item.price)));
+      basketItemList.add( new BasketItem(item.itemUuid,formatNumericToString(item.quantity),formatNumericToString(item.price)));
     }
-    return new BasketView(id, summary.userID,basketItemList, formatToString(summary.subTotal),formatToString(summary.tax),formatToString(summary.total));
+    return new BasketView(id, summary.userID,basketItemList, formatNumericToString(summary.subTotal),formatNumericToString(summary.tax),formatNumericToString(summary.total));
   }
 
 
-  public static String formatToString(double d)
+  public static String formatNumericToString(double d)
   {
-    if(d == (long) d)
-      return String.format("%d",(long)d);
-    else
-      return String.format("%s",d);
+    return new DecimalFormat("0.##").format(d);
   }
 
 

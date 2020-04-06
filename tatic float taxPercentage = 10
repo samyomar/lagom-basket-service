@@ -1,0 +1,584 @@
+[1mdiff --git a/basket-api/pom.xml b/basket-api/pom.xml[m
+[1mindex e97c118..467a4d7 100644[m
+[1m--- a/basket-api/pom.xml[m
+[1m+++ b/basket-api/pom.xml[m
+[36m@@ -26,22 +26,5 @@[m
+             <groupId>org.projectlombok</groupId>[m
+             <artifactId>lombok</artifactId>[m
+         </dependency>[m
+[31m-        <!-- <dependency>[m
+[31m-             <groupId>com.lightbend.lagom</groupId>[m
+[31m-             <artifactId>lagom-javadsl-testkit_${scala.binary.version}</artifactId>[m
+[31m-             <version>${lagom.version}</version>[m
+[31m-             <scope>test</scope>[m
+[31m-         </dependency>[m
+[31m-     <dependency>[m
+[31m-             <groupId>org.slf4j</groupId>[m
+[31m-             <artifactId>slf4j-api</artifactId>[m
+[31m-             <version>1.7.25</version>[m
+[31m-         </dependency>[m
+[31m-         <dependency>[m
+[31m-             <groupId>org.slf4j</groupId>[m
+[31m-             <artifactId>slf4j-jdk14</artifactId>[m
+[31m-             <version>1.7.25</version>[m
+[31m-         </dependency>[m
+[31m-         -->[m
+     </dependencies>[m
+ </project>[m
+[1mdiff --git a/basket-api/src/main/java/com/elmenus/basket/api/BasketEvent.java b/basket-api/src/main/java/com/elmenus/basket/api/BasketEvent.java[m
+[1mnew file mode 100644[m
+[1mindex 0000000..49e7622[m
+[1m--- /dev/null[m
+[1m+++ b/basket-api/src/main/java/com/elmenus/basket/api/BasketEvent.java[m
+[36m@@ -0,0 +1,28 @@[m
+[32m+[m[32mpackage com.elmenus.basket.api;[m
+[32m+[m
+[32m+[m[32mimport com.fasterxml.jackson.annotation.JsonCreator;[m
+[32m+[m[32mimport com.fasterxml.jackson.annotation.JsonSubTypes;[m
+[32m+[m[32mimport com.fasterxml.jackson.annotation.JsonTypeInfo;[m
+[32m+[m[32mimport com.google.common.base.Preconditions;[m
+[32m+[m[32mimport lombok.Value;[m
+[32m+[m
+[32m+[m[32m@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")[m
+[32m+[m[32m@JsonSubTypes({[m
+[32m+[m[32m  @JsonSubTypes.Type(value = BasketEvent.GreetingMessageChanged.class, name = "greeting-message-changed")[m
+[32m+[m[32m})[m
+[32m+[m[32mpublic interface BasketEvent {[m
+[32m+[m
+[32m+[m[32m  String getName();[m
+[32m+[m
+[32m+[m[32m  @Value[m
+[32m+[m[32m  final class GreetingMessageChanged implements BasketEvent {[m
+[32m+[m[32m    public final String name;[m
+[32m+[m[32m    public final String message;[m
+[32m+[m
+[32m+[m[32m    @JsonCreator[m
+[32m+[m[32m    public GreetingMessageChanged(String name, String message) {[m
+[32m+[m[32m        this.name = Preconditions.checkNotNull(name, "name");[m
+[32m+[m[32m        this.message = Preconditions.checkNotNull(message, "message");[m
+[32m+[m[32m    }[m
+[32m+[m[32m  }[m
+[32m+[m[32m}[m
+[1mdiff --git a/basket-api/src/main/java/com/elmenus/basket/api/BasketItem.java b/basket-api/src/main/java/com/elmenus/basket/api/BasketItem.java[m
+[1mindex 008b384..dd86bd6 100644[m
+[1m--- a/basket-api/src/main/java/com/elmenus/basket/api/BasketItem.java[m
+[1m+++ b/basket-api/src/main/java/com/elmenus/basket/api/BasketItem.java[m
+[36m@@ -14,18 +14,17 @@[m [mimport java.util.UUID;[m
+ @JsonDeserialize[m
+ public final class BasketItem {[m
+ [m
+[31m-[m
+[31m-    public final String uuid;[m
+[31m-    public final String quantity;[m
+[31m-    public final String price;[m
+[31m-[m
+[31m-[m
+[31m-   @JsonCreator[m
+[31m-    public BasketItem(String uuid,  String quantity, String price) {[m
+[31m-        this.uuid = Preconditions.checkNotNull(uuid, "Item UUID is missing");[m
+[32m+[m[32m    public final UUID itemId;[m
+[32m+[m[32m    public final UUID userUuid;[m
+[32m+[m[32m    public final int quantity;[m
+[32m+[m[32m    public final float price;[m
+[32m+[m
+[32m+[m[32m    @JsonCreator[m
+[32m+[m[32m    public BasketItem(UUID itemId, UUID userUuid,  int quantity, float price) {[m
+[32m+[m[32m        this.itemId = Preconditions.checkNotNull(itemId, "Item id is missing");[m
+[32m+[m[32m        this.userUuid=Preconditions.checkNotNull(userUuid,"User ID is empty");[m
+         this.quantity = quantity;[m
+         this.price = price;[m
+     }[m
+ [m
+[31m-[m
+ }[m
+[1mdiff --git a/basket-api/src/main/java/com/elmenus/basket/api/BasketService.java b/basket-api/src/main/java/com/elmenus/basket/api/BasketService.java[m
+[1mindex a10c414..598200f 100644[m
+[1m--- a/basket-api/src/main/java/com/elmenus/basket/api/BasketService.java[m
+[1m+++ b/basket-api/src/main/java/com/elmenus/basket/api/BasketService.java[m
+[36m@@ -6,7 +6,6 @@[m [mimport com.lightbend.lagom.javadsl.api.Descriptor;[m
+ import com.lightbend.lagom.javadsl.api.Service;[m
+ import com.lightbend.lagom.javadsl.api.ServiceCall;[m
+ import com.lightbend.lagom.javadsl.api.transport.Method;[m
+[31m-import com.lightbend.lagom.javadsl.server.ServerServiceCall;[m
+ [m
+ import java.util.UUID;[m
+ [m
+[36m@@ -24,6 +23,10 @@[m [mpublic interface BasketService extends Service {[m
+   ServiceCall<NotUsed, BasketView> getBasket(UUID basketUUID);[m
+   ServiceCall<BasketItem, Done> addItem(UUID basketUUID);[m
+ [m
+[32m+[m[32m  /**[m
+[32m+[m[32m   * This gets published to Kafka.[m
+[32m+[m[32m   */[m
+[32m+[m[32m  //Topic<BasketEvent> helloEvents();[m
+ [m
+   @Override[m
+   default Descriptor descriptor() {[m
+[36m@@ -31,6 +34,14 @@[m [mpublic interface BasketService extends Service {[m
+     return named("basket").withCalls([m
+             restCall(Method.GET, "/api/basket/:basketUUID",this::getBasket),[m
+             restCall(Method.PUT, "/api/basket/:basketUUID",this::addItem)[m
+[31m-      ).withTopics().withAutoAcl(true);[m
+[32m+[m[32m      ).withTopics([m
+[32m+[m[32m          //topic("hello-events", this::helloEvents)[m
+[32m+[m[32m          // Kafka partitions messages, messages within the same partition will[m
+[32m+[m[32m          // be delivered in order, to ensure that all messages for the same user[m
+[32m+[m[32m          // go to the same partition (and hence are delivered in order with respect[m
+[32m+[m[32m          // to that user), we configure a partition key strategy that extracts the[m
+[32m+[m[32m          // name as the partition key.[m
+[32m+[m[32m         // .withProperty(KafkaProperties.partitionKeyStrategy(), BasketEvent::getName)[m
+[32m+[m[32m        ).withAutoAcl(true);[m
+   }[m
+ }[m
+[1mdiff --git a/basket-api/src/main/java/com/elmenus/basket/api/BasketView.java b/basket-api/src/main/java/com/elmenus/basket/api/BasketView.java[m
+[1mindex 9d04856..045e684 100644[m
+[1m--- a/basket-api/src/main/java/com/elmenus/basket/api/BasketView.java[m
+[1m+++ b/basket-api/src/main/java/com/elmenus/basket/api/BasketView.java[m
+[36m@@ -4,6 +4,7 @@[m [mimport com.fasterxml.jackson.databind.annotation.JsonDeserialize;[m
+ import com.google.common.base.Preconditions;[m
+ import lombok.Value;[m
+ import java.util.List;[m
+[32m+[m[32mimport java.util.UUID;[m
+ [m
+ @Value[m
+ @JsonDeserialize[m
+[36m@@ -11,13 +12,13 @@[m [mpublic final class BasketView {[m
+ [m
+     public final String uuid;[m
+     public final String userUuid;[m
+[31m-    public final List<BasketItem> items;[m
+[32m+[m[32m    public final List<ItemDTO> items;[m
+     public final String subTotal;[m
+     public final String tax;[m
+     public final String total;[m
+ [m
+     @JsonCreator[m
+[31m-    public BasketView(String uuid, String userUuid, List<BasketItem> items, String subTotal, String tax , String total) {[m
+[32m+[m[32m    public BasketView(String uuid, String userUuid, List<ItemDTO> items, String subTotal, String tax , String total) {[m
+         this.uuid = Preconditions.checkNotNull(uuid, "uuid");[m
+         this.userUuid = Preconditions.checkNotNull(userUuid, "userUuid");[m
+         this.items = Preconditions.checkNotNull(items, "items");[m
+[1mdiff --git a/basket-api/src/main/java/com/elmenus/basket/api/ItemDTO.java b/basket-api/src/main/java/com/elmenus/basket/api/ItemDTO.java[m
+[1mnew file mode 100644[m
+[1mindex 0000000..4cc2e35[m
+[1m--- /dev/null[m
+[1m+++ b/basket-api/src/main/java/com/elmenus/basket/api/ItemDTO.java[m
+[36m@@ -0,0 +1,21 @@[m
+[32m+[m[32mpackage com.elmenus.basket.api;[m
+[32m+[m
+[32m+[m[32mimport com.fasterxml.jackson.annotation.JsonCreator;[m
+[32m+[m[32mimport com.fasterxml.jackson.databind.annotation.JsonDeserialize;[m
+[32m+[m[32mimport lombok.Value;[m
+[32m+[m
+[32m+[m[32m@Value[m
+[32m+[m[32m@JsonDeserialize[m
+[32m+[m[32mpublic class ItemDTO {[m
+[32m+[m
+[32m+[m[32m    public final String uuid;[m
+[32m+[m[32m    public final String quantity;[m
+[32m+[m[32m    public final String price;[m
+[32m+[m
+[32m+[m[32m    @JsonCreator[m
+[32m+[m[32m    public ItemDTO(String uuid, String quantity, String price) {[m
+[32m+[m[32m        this.uuid = uuid;[m
+[32m+[m[32m        this.quantity = quantity;[m
+[32m+[m[32m        this.price = price;[m
+[32m+[m[32m    }[m
+[32m+[m[32m}[m
+[1mdiff --git a/basket-impl/.toDelete b/basket-impl/.toDelete[m
+[1mdeleted file mode 100644[m
+[1mindex e69de29..0000000[m
+[1mdiff --git a/basket-impl/pom.xml b/basket-impl/pom.xml[m
+[1mindex 53683f1..aed55bb 100644[m
+[1m--- a/basket-impl/pom.xml[m
+[1m+++ b/basket-impl/pom.xml[m
+[36m@@ -30,77 +30,24 @@[m
+         <dependency>[m
+             <groupId>com.lightbend.lagom</groupId>[m
+             <artifactId>lagom-logback_${scala.binary.version}</artifactId>[m
+[31m-                <exclusions>[m
+[31m-                    <exclusion>[m
+[31m-                        <groupId>org.slf4j</groupId>[m
+[31m-                        <artifactId>slf4j-api</artifactId>[m
+[31m-                    </exclusion>[m
+[31m-                    <exclusion>[m
+[31m-                        <groupId>org.slf4j</groupId>[m
+[31m-                        <artifactId>integration</artifactId>[m
+[31m-                    </exclusion>[m
+[31m-                    <exclusion>[m
+[31m-                        <groupId>org.slf4j</groupId>[m
+[31m-                        <artifactId>slf4j-log4j12</artifactId>[m
+[31m-                    </exclusion>[m
+[31m-                    <exclusion>[m
+[31m-                        <groupId>org.slf4j</groupId>[m
+[31m-                        <artifactId>slf4j-jdk14</artifactId>[m
+[31m-                    </exclusion>[m
+[31m-                    <exclusion>[m
+[31m-                        <groupId>log4j</groupId>[m
+[31m-                        <artifactId>log4j</artifactId>[m
+[31m-                    </exclusion>[m
+[31m-            </exclusions>[m
+         </dependency>[m
+         <dependency>[m
+             <groupId>com.typesafe.play</groupId>[m
+             <artifactId>play-akka-http-server_${scala.binary.version}</artifactId>[m
+[31m-            <exclusions>[m
+[31m-                <exclusion>[m
+[31m-                    <groupId>org.slf4j</groupId>[m
+[31m-                    <artifactId>slf4j-api</artifactId>[m
+[31m-                </exclusion>[m
+[31m-                <exclusion>[m
+[31m-                    <groupId>org.slf4j</groupId>[m
+[31m-                    <artifactId>integration</artifactId>[m
+[31m-                </exclusion>[m
+[31m-                <exclusion>[m
+[31m-                    <groupId>org.slf4j</groupId>[m
+[31m-                    <artifactId>slf4j-log4j12</artifactId>[m
+[31m-                </exclusion>[m
+[31m-                <exclusion>[m
+[31m-                    <groupId>org.slf4j</groupId>[m
+[31m-                    <artifactId>slf4j-jdk14</artifactId>[m
+[31m-                </exclusion>[m
+[31m-                <exclusion>[m
+[31m-                    <groupId>log4j</groupId>[m
+[31m-                    <artifactId>log4j</artifactId>[m
+[31m-                </exclusion>[m
+[31m-            </exclusions>[m
+         </dependency>[m
+         <dependency>[m
+             <groupId>com.lightbend.lagom</groupId>[m
+             <artifactId>lagom-javadsl-testkit_${scala.binary.version}</artifactId>[m
+             <scope>test</scope>[m
+         </dependency>[m
+[32m+[m[32m        <dependency>[m
+[32m+[m[32m            <groupId>com.lightbend.lagom</groupId>[m
+[32m+[m[32m            <artifactId>lagom-javadsl-kafka-broker_${scala.binary.version}</artifactId>[m
+[32m+[m[32m        </dependency>[m
+        <dependency>[m
+             <groupId>org.projectlombok</groupId>[m
+             <artifactId>lombok</artifactId>[m
+         </dependency>[m
+[31m-        <!-- <dependency>[m
+[31m-            <groupId>org.slf4j</groupId>[m
+[31m-            <artifactId>slf4j-api</artifactId>[m
+[31m-            <version>1.7.25</version>[m
+[31m-            <scope>test</scope>[m
+[31m-        </dependency>[m
+[31m-       <dependency>[m
+[31m-            <groupId>org.slf4j</groupId>[m
+[31m-            <artifactId>slf4j-jdk14</artifactId>[m
+[31m-            <version>1.7.25</version>[m
+[31m-            <scope>test</scope>[m
+[31m-        </dependency>-->[m
+[31m-[m
+     </dependencies>[m
+ [m
+     <build>[m
+[1mdiff --git a/basket-impl/src/main/java/com/elmenus/basket/impl/BasketAggregate.java b/basket-impl/src/main/java/com/elmenus/basket/impl/BasketAggregate.java[m
+[1mindex 28869e3..a694dd4 100644[m
+[1m--- a/basket-impl/src/main/java/com/elmenus/basket/impl/BasketAggregate.java[m
+[1m+++ b/basket-impl/src/main/java/com/elmenus/basket/impl/BasketAggregate.java[m
+[36m@@ -5,13 +5,8 @@[m [mimport akka.cluster.sharding.typed.javadsl.EntityTypeKey;[m
+ import akka.persistence.typed.PersistenceId;[m
+ import akka.persistence.typed.javadsl.*;[m
+ import com.lightbend.lagom.javadsl.persistence.AkkaTaggerAdapter;[m
+[31m-import com.lightbend.lagom.javadsl.persistence.PersistentEntity;[m
+ import lombok.extern.java.Log;[m
+[31m-[m
+[31m-import java.time.Instant;[m
+[31m-import java.util.Optional;[m
+ import java.util.Set;[m
+[31m-import java.util.UUID;[m
+ [m
+ /**[m
+ * This is an event sourced aggregate. It has a state, {@link BasketState}, which[m
+[36m@@ -42,7 +37,6 @@[m [mpublic class BasketAggregate extends EventSourcedBehaviorWithEnforcedReplies<Bas[m
+ [m
+   final private EntityContext<BasketCommand> entityContext;[m
+   final private String entityId;[m
+[31m-  final private float taxPercentage = 10;[m
+ [m
+   BasketAggregate(EntityContext<BasketCommand> entityContext) {[m
+     super([m
+[36m@@ -65,103 +59,67 @@[m [mpublic class BasketAggregate extends EventSourcedBehaviorWithEnforcedReplies<Bas[m
+   }[m
+ [m
+ [m
+[31m-[m
+[31m-[m
+   @Override[m
+   public CommandHandlerWithReply<BasketCommand, BasketEvent, BasketState> commandHandler() {[m
+[32m+[m
+     CommandHandlerWithReplyBuilder<BasketCommand, BasketEvent, BasketState> builder = newCommandHandlerWithReplyBuilder();[m
+[31m-    //Command handler for the AddItem command.[m
+[31m-    builder.forAnyState().onCommand(BasketCommand.AddItemCommand.class, this::onAddOrUpdateItem)[m
+[31m-                         .onCommand(BasketCommand.GetBasketCommand.class, this::onGetBasketInfo);[m
+[31m-    return builder.build();[m
+[31m-  }[m
+ [m
+[32m+[m[32m    /*[m
+[32m+[m[32m     * Command handler for the AddItem command.[m
+[32m+[m[32m     */[m
+[32m+[m[32m    builder.forAnyState()[m
+[32m+[m[32m            .onCommand(BasketCommand.AddItemCommand.class, (state, cmd) ->[m
+[32m+[m[32m                    Effect()[m
+[32m+[m[32m                            // In response to this command, we want to first persist it as a[m
+[32m+[m[32m                            // GreetingMessageChanged event[m
+[32m+[m[32m                            .persist(new BasketEvent.ItemAddedEvent(entityId,cmd.userId.toString(),cmd.itemId.toString(),cmd.quantity,cmd.price,getTaxValue()))[m
+[32m+[m[32m                            // Then once the event is successfully persisted, we respond with done.[m
+[32m+[m[32m                            .thenReply(cmd.replyTo, s -> new BasketCommand.Accepted(toSummary(s)))[m
+[32m+[m[32m            );[m
+ [m
+[31m-  private ReplyEffect<BasketEvent, BasketState> onGetBasketInfo(BasketState basketState, BasketCommand.GetBasketCommand cmd) {[m
+[31m-    return Effect().none().thenReply(cmd.replyTo, s -> toSummary(s));[m
+[31m-  }[m
+[32m+[m[32m    builder.forAnyState()[m
+[32m+[m[32m            .onCommand(BasketCommand.GetBasketCommand.class, (state, cmd) ->[m
+[32m+[m[32m             Effect().none()[m
+[32m+[m[32m                     .thenReply(cmd.replyTo, s -> toSummary(s))[m
+[32m+[m[32m            );[m
+[32m+[m
+[32m+[m[32m    return builder.build();[m
+ [m
+[31m-  private ReplyEffect<BasketEvent, BasketState> onAddOrUpdateItem(BasketState basketState, BasketCommand.AddItemCommand cmd) {[m
+[31m-    if(cmd.userUuid==null || cmd.userUuid.trim().isEmpty()){[m
+[31m-      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected("User ID is missing"));[m
+[31m-    }else if (!isUUID(cmd.userUuid)) {[m
+[31m-      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected(cmd.userUuid + " User ID is not a valid UUID."));[m
+[31m-    } else if (!isUUID(cmd.itemUuid)) {[m
+[31m-      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected("Item ID is not a valid UUID."));[m
+[31m-    }else if (basketState.hasAnotherUser(cmd.userUuid)) {[m
+[31m-      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected("This Basket belongs to another user, Access Denied."));[m
+[31m-    } else if(!isNumeric(cmd.quantity)){[m
+[31m-      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected("Quantity is not a valid numerical value"));[m
+[31m-    } else if(!isNumeric(cmd.price)){[m
+[31m-      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected("Price is not a valid numerical value"));[m
+[31m-    } else if (Integer.parseInt(cmd.quantity) <= 0) {[m
+[31m-      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected("Quantity must be greater than zero"));[m
+[31m-    } else if (Float.parseFloat(cmd.getPrice()) < 0) {[m
+[31m-      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected("Item Price can not be less than zero"));[m
+[31m-    } else {[m
+[31m-      return Effect()[m
+[31m-              .persist(new BasketEvent.ItemAddedEvent(entityId, cmd.userUuid, cmd.itemUuid, Integer.parseInt(cmd.quantity), Float.parseFloat(cmd.price), getTaxPercentage()))[m
+[31m-              .thenReply(cmd.replyTo, s -> new BasketCommand.Accepted(toSummary(s)))[m
+[31m-              ;[m
+[31m-    }[m
+   }[m
+ [m
+ [m
+   @Override[m
+   public EventHandler<BasketState, BasketEvent> eventHandler() {[m
+     EventHandlerBuilder<BasketState, BasketEvent> builder = newEventHandlerBuilder();[m
+[32m+[m
+[32m+[m[32m    /*[m
+[32m+[m[32m     * Event handler for the GreetingMessageChanged event.[m
+[32m+[m[32m     */[m
+     builder.forAnyState()[m
+       .onEvent(BasketEvent.ItemAddedEvent.class, (state, evt) ->[m
+[31m-        state.addOrUpdateItem(evt.userUuid,evt.itemUuid,evt.quantity,evt.price,evt.taxPercentage)[m
+[32m+[m[32m        // We simply update the current state to use the greeting message from[m
+[32m+[m[32m        // the event.[m
+[32m+[m[32m        state.addOrUpdateItem(evt.userUuid,evt.itemUuid,evt.quantity,evt.price,evt.tax)[m
+       );[m
+     return builder.build();[m
+   }[m
+ [m
+ [m
+   @Override[m
+[31m-  public Set<String> tagsFor(BasketEvent basketEvent) {[m
+[31m-    return AkkaTaggerAdapter.fromLagom(entityContext, BasketEvent.TAG).apply(basketEvent);[m
+[32m+[m[32m  public Set<String> tagsFor(BasketEvent shoppingCartEvent) {[m
+[32m+[m[32m    return AkkaTaggerAdapter.fromLagom(entityContext, BasketEvent.TAG).apply(shoppingCartEvent);[m
+   }[m
+ [m
+ [m
+   private BasketCommand.Summary toSummary(BasketState basketState) {[m
+[31m-    return new BasketCommand.Summary(basketState.items,basketState.userUuid,basketState.subTotal,basketState.taxPercentage,basketState.total);[m
+[32m+[m[32m    log.severe("basketstate before being summary" + basketState.toString());[m
+[32m+[m[32m    return new BasketCommand.Summary(basketState.basketItems,basketState.userUuid,basketState.subTotal,basketState.tax,basketState.total);[m
+   }[m
+ [m
+[31m-[m
+[31m-[m
+[31m-  float getTaxPercentage()[m
+[32m+[m[32m  float getTaxValue()[m
+   {[m
+      // for demo purposes this value is hardcoded here, it should come from a DB or from a service lookup.[m
+[31m-    //  this 10% of any subtotal.[m
+[31m-     return taxPercentage;[m
+[32m+[m[32m     return 5;[m
+   }[m
+ [m
+[31m-  static boolean isNumeric(String str) {[m
+[31m-    try[m
+[31m-    {[m
+[31m-      Double.parseDouble(str);[m
+[31m-      return true;[m
+[31m-    } catch(NumberFormatException e)[m
+[31m-    {[m
+[31m-      return false;[m
+[31m-    }[m
+[31m-    catch(NullPointerException e)[m
+[31m-    {[m
+[31m-      return false;[m
+[31m-    }[m
+[31m-  }[m
+[31m-[m
+[31m-  static boolean isUUID(String string) {[m
+[31m-    try {[m
+[31m-      UUID temp = UUID.fromString(string);[m
+[31m-      return true;[m
+[31m-    } catch (Exception ex) {[m
+[31m-      log.severe(ex.getMessage());[m
+[31m-      ex.printStackTrace();[m
+[31m-      return false;[m
+[31m-    }[m
+[31m-  }[m
+[31m-[m
+[31m-[m
+ }[m
+[1mdiff --git a/basket-impl/src/main/java/com/elmenus/basket/impl/BasketCommand.java b/basket-impl/src/main/java/com/elmenus/basket/impl/BasketCommand.java[m
+[1mindex cf455ea..e68374e 100644[m
+[1m--- a/basket-impl/src/main/java/com/elmenus/basket/impl/BasketCommand.java[m
+[1m+++ b/basket-impl/src/main/java/com/elmenus/basket/impl/BasketCommand.java[m
+[36m@@ -1,7 +1,7 @@[m
+ package com.elmenus.basket.impl;[m
+ [m
+ import akka.actor.typed.ActorRef;[m
+[31m-import com.elmenus.basket.api.BasketItem;[m
+[32m+[m[32mimport com.elmenus.basket.api.ItemDTO;[m
+ import com.fasterxml.jackson.annotation.JsonCreator;[m
+ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;[m
+ import com.google.common.base.Preconditions;[m
+[36m@@ -10,6 +10,7 @@[m [mimport com.lightbend.lagom.serialization.Jsonable;[m
+ import lombok.Value;[m
+ [m
+ import java.util.List;[m
+[32m+[m[32mimport java.util.Set;[m
+ import java.util.UUID;[m
+ [m
+ /**[m
+[36m@@ -24,16 +25,16 @@[m [mpublic interface BasketCommand extends Jsonable {[m
+   @Value[m
+   @JsonDeserialize[m
+   static final class AddItemCommand implements BasketCommand, CompressedJsonable {[m
+[31m-    public final String userUuid;[m
+[31m-    public final String itemUuid;[m
+[31m-    public final String quantity;[m
+[31m-    public final String price;[m
+[32m+[m[32m    public final UUID itemId;[m
+[32m+[m[32m    public final UUID userId;[m
+[32m+[m[32m    public final int quantity;[m
+[32m+[m[32m    public final float price;[m
+     public final ActorRef<Confirmation> replyTo;[m
+ [m
+     @JsonCreator[m
+[31m-    AddItemCommand(String userUuid ,String itemUuid, String quantity, String price, ActorRef<Confirmation> replyTo) {[m
+[31m-      this.userUuid = Preconditions.checkNotNull(userUuid, "user UUID is missing");[m
+[31m-      this.itemUuid = Preconditions.checkNotNull(itemUuid, "item UUID is missing");[m
+[32m+[m[32m    AddItemCommand(UUID itemId, UUID userId , int quantity, float price, ActorRef<Confirmation> replyTo) {[m
+[32m+[m[32m      this.itemId = Preconditions.checkNotNull(itemId, "itemId is missing");[m
+[32m+[m[32m      this.userId = Preconditions.checkNotNull(userId, "user Id is missing");[m
+       this.quantity = quantity;[m
+       this.price = price;[m
+       this.replyTo = replyTo;[m
+[1mdiff --git a/basket-impl/src/main/java/com/elmenus/basket/impl/BasketEvent.java b/basket-impl/src/main/java/com/elmenus/basket/impl/BasketEvent.java[m
+[1mindex 57a7ed6..a3552a8 100644[m
+[1m--- a/basket-impl/src/main/java/com/elmenus/basket/impl/BasketEvent.java[m
+[1m+++ b/basket-impl/src/main/java/com/elmenus/basket/impl/BasketEvent.java[m
+[36m@@ -1,5 +1,6 @@[m
+ package com.elmenus.basket.impl;[m
+ [m
+[32m+[m[32mimport com.elmenus.basket.api.ItemDTO;[m
+ import com.lightbend.lagom.javadsl.persistence.AggregateEvent;[m
+ import com.lightbend.lagom.javadsl.persistence.AggregateEventShards;[m
+ import com.lightbend.lagom.javadsl.persistence.AggregateEventTag;[m
+[36m@@ -8,6 +9,7 @@[m [mimport lombok.Value;[m
+ [m
+ import com.fasterxml.jackson.annotation.JsonCreator;[m
+ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;[m
+[32m+[m[32mimport com.google.common.base.Preconditions;[m
+ import com.lightbend.lagom.serialization.Jsonable;[m
+ [m
+ /**[m
+[36m@@ -40,16 +42,16 @@[m [mpublic interface BasketEvent extends Jsonable, AggregateEvent<BasketEvent> {[m
+     public final String itemUuid;[m
+     public final int quantity;[m
+     public final float price;[m
+[31m-    public final float taxPercentage;[m
+[32m+[m[32m    public final float tax;[m
+ [m
+     @JsonCreator[m
+[31m-    public ItemAddedEvent(String uuid,  String userUuid , String itemUuid, int quantity, float price, float taxPercentage) {[m
+[32m+[m[32m    public ItemAddedEvent(String uuid,  String userUuid , String itemUuid, int quantity, float price, float tax) {[m
+        this.uuid= uuid;[m
+        this.userUuid=userUuid;[m
+        this.itemUuid = itemUuid;[m
+        this.quantity=quantity;[m
+        this.price=price;[m
+[31m-       this.taxPercentage=taxPercentage;[m
+[32m+[m[32m       this.tax=tax;[m
+     }[m
+ [m
+   }[m
+[1mdiff --git a/basket-impl/src/main/java/com/elmenus/basket/impl/BasketServiceImpl.java b/basket-impl/src/main/java/com/elmenus/basket/impl/BasketServiceImpl.java[m
+[1mindex c8bb123..7c9def3 100644[m
+[1m--- a/basket-impl/src/main/java/com/elmenus/basket/impl/BasketServiceImpl.java[m
+[1m+++ b/basket-impl/src/main/java/com/elmenus/basket/impl/BasketServiceImpl.java[m
+[36m@@ -5,16 +5,12 @@[m [mimport akka.NotUsed;[m
+ import akka.cluster.sharding.typed.javadsl.ClusterSharding;[m
+ import akka.cluster.sharding.typed.javadsl.Entity;[m
+ import akka.cluster.sharding.typed.javadsl.EntityRef;[m
+[31m-import akka.japi.Pair;[m
+ import com.elmenus.basket.api.*;[m
+ import com.lightbend.lagom.javadsl.api.ServiceCall;[m
+ import com.lightbend.lagom.javadsl.api.transport.BadRequest;[m
+[31m-import com.lightbend.lagom.javadsl.api.transport.ResponseHeader;[m
+ import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;[m
+ [m
+ import com.elmenus.basket.impl.BasketCommand.*;[m
+[31m-import com.lightbend.lagom.javadsl.server.HeaderServiceCall;[m
+[31m-import lombok.extern.java.Log;[m
+ [m
+ import javax.inject.Inject;[m
+ import java.time.Duration;[m
+[36m@@ -23,7 +19,6 @@[m [mimport java.util.*;[m
+ /**[m
+  * Implementation of the BasketService.[m
+  */[m
+[31m-@Log[m
+ public class BasketServiceImpl implements BasketService {[m
+ [m
+   private final PersistentEntityRegistry persistentEntityRegistry;[m
+[36m@@ -57,31 +52,29 @@[m [mpublic class BasketServiceImpl implements BasketService {[m
+ [m
+ [m
+ [m
+[31m-[m
+   @Override[m
+   public ServiceCall<NotUsed, BasketView> getBasket(UUID basketUUID) {[m
+     return request ->[m
+             entityRef(basketUUID)[m
+                     .ask(BasketCommand.GetBasketCommand::new, askTimeout)[m
+[31m-                    .thenApply(summary -> asBasketView(basketUUID.toString(),summary));[m
+[32m+[m[32m                    .thenApply(summary -> asBasketView(basketUUID.toString(), summary));[m
+   }[m
+ [m
+   @Override[m
+[31m-  public HeaderServiceCall<BasketItem, Done> addItem(UUID basketUUID) {[m
+[31m-    ResponseHeader responseHeader = ResponseHeader.OK;[m
+[31m-      return (requestHeader,basketItem) -> {[m
+[31m-         return entityRef(basketUUID)[m
+[31m-                .<BasketCommand.Confirmation>ask(replyTo -> new BasketCommand.AddItemCommand([m
+[31m-                                  requestHeader.getHeader("UserUuid").orElse(null)[m
+[31m-                                , basketItem.uuid[m
+[31m-                                , basketItem.quantity[m
+[31m-                                , basketItem.price[m
+[31m-                                , replyTo)[m
+[31m-                        , askTimeout)[m
+[31m-                .thenApply(this::handleConfirmation)[m
+[31m-                .thenApply(accepted -> Pair.create(responseHeader, Done.getInstance()));[m
+[31m-      };[m
+[31m-      }[m
+[32m+[m[32m  public ServiceCall<BasketItem, Done> addItem(UUID basketUUID) {[m
+[32m+[m[32m      return basketItem ->  entityRef(basketUU
