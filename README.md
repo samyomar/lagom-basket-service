@@ -26,20 +26,55 @@ mvn lagom:runAll
 
 You can start to GET a basket info using any random UUID 
 ```
-curl http://localhost:9000/api/basket/c78383b8-208d-4a3b-a709-1cbc463dd541
+curl http://localhost:9000/api/basket/a0e55f06-7f2a-4b18-a512-d83ed82b8026
 ```
 
-The basket will be empty, So lets add a new item to the basket (use any random UUID for userID and ItemID)
+The basket will be empty
 ```
-curl -H "Content-Type: application/json" -d '{"uuid": "c9f3c98b-e680-4090-bfac-c60aca3d1db7","quantity": "2","price": "10"}' -X PUT http://localhost:9000/api/basket/c78383b8-208d-4a3b-a709-1cbc463dd541
+{
+  "uuid": "a0e55f06-7f2a-4b18-a512-d83ed82b8026",
+  "userUuid": "",
+  "items": [],
+  "subTotal": "0.0",
+  "tax": "0.0",
+  "total": "0.0"
+}
 ```
+So lets add a new item to the basket (for simplicity I added userUuid within the PUT body, ideally it should be retrieved from Request Header for identification and authintication purposes)
+```
+curl -H "Content-Type: application/json" -d "{\"userUuid\":\"73947738-d5f4-453c-b476-6ac6ab6fb00e\" ,\"itemId\": \"c9f3c98b-e680-4090-bfac-c60aca3d1db7\",\"quantity\": 2,\"price\": 10}" -X PUT http://localhost:9000/api/basket/a0e55f06-7f2a-4b18-a512-d83ed82b8026
+```
+you will get
+```
+{ "done" : true }
+```
+Then try to run the same command but with a new ItemUUID , QTY and price (if the same it will just replace)
+```
+curl -H "Content-Type: application/json" -d "{\"userUuid\":\"73947738-d5f4-453c-b476-6ac6ab6fb00e\" ,\"itemId\": \"c9f3c98b-e680-4090-bfac-c60aca3d1d88\",\"quantity\": 3,\"price\": 20}" -X PUT http://localhost:9000/api/basket/a0e55f06-7f2a-4b18-a512-d83ed82b8026
+```
+Then you will get the following json representing the basket content after using the above GET command again.
 
-Then try to run the same command with a new ItemUUID , QTY and price (if the same it will just replace)
 ```
-curl -H "Content-Type: application/json" -d '{"uuid": "3eee6d5d-df32-451d-84b9-6624af588b05","quantity": "3","price": "30"}' -X PUT http://localhost:9000/api/basket/c78383b8-208d-4a3b-a709-1cbc463dd541
+{
+  "uuid": "a0e55f06-7f2a-4b18-a512-d83ed82b8026",
+  "userUuid": "73947738-d5f4-453c-b476-6ac6ab6fb00e",
+  "items": [
+    {
+      "uuid": "c9f3c98b-e680-4090-bfac-c60aca3d1db7",
+      "quantity": "2",
+      "price": "10.0"
+    },
+    {
+      "uuid": "c9f3c98b-e680-4090-bfac-c60aca3d1d88",
+      "quantity": "3",
+      "price": "20.0"
+    }
+  ],
+  "subTotal": "80.0",
+  "tax": "5.0",
+  "total": "85.0"
+}
 ```
-Then use get command to check the basket info, it should be filled with your items
-
 
 Hint: you can get random UUID simply using this simple curl command
 ```
@@ -49,33 +84,13 @@ curl https://www.uuidgenerator.net/api/version4	)
 ***Note: 
 PUT is used to create or update a resource , so if you try to insert the same item multiple times it will only replace it because PUT is idempotent.
 
-### Basket structure:
-      {
-        "uuid": "c78383b8-208d-4a3b-a709-1cbc463dd541",
-        "userUuid": "72081821-f9e5-4cc8-876b-84f67ad83156",
-        "items": [
-          {
-            "uuid": "c9f3c98b-e680-4090-bfac-c60aca3d1db7",
-            "quantity": "2",
-            "price": "10"
-          },
-          {
-            "uuid": "d60b5276-16a2-4aa2-9df7-dd09eba10171",
-            "quantity": "1",
-            "price": "30"
-          }
-        ],
-        "subTotal": "50",
-        "tax": "5",
-        "total": "55"
-      }
-
 #### Assumptions & Future Work:
 - UserID value should be taken from Header, for simplicity we send it in PUT body.
 - Tax value is hardcoded for simplicity, it should be retrived dynamically from DB, external service or configuration files.
 - Communication with other services should be done by publishing an event to Kafka topic, or consumming from other subscribed topics.
 - Security checks needs to be implemented (authintication & authorization). So currently if userID is changed for the same basket ID it will just replace it with the new userID (a security validation should be added).
 - Unit Testing should be added.
+- Business validations should be added like item QTY and price should not be > zero.
 
 #### Prerequisites
 to understand Lagom framework properly you need to be familiar with the following concepts:
