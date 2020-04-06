@@ -6,6 +6,7 @@ import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.transport.Method;
+import com.lightbend.lagom.javadsl.server.ServerServiceCall;
 
 import java.util.UUID;
 
@@ -23,10 +24,6 @@ public interface BasketService extends Service {
   ServiceCall<NotUsed, BasketView> getBasket(UUID basketUUID);
   ServiceCall<BasketItem, Done> addItem(UUID basketUUID);
 
-  /**
-   * This gets published to Kafka.
-   */
-  //Topic<BasketEvent> helloEvents();
 
   @Override
   default Descriptor descriptor() {
@@ -34,14 +31,6 @@ public interface BasketService extends Service {
     return named("basket").withCalls(
             restCall(Method.GET, "/api/basket/:basketUUID",this::getBasket),
             restCall(Method.PUT, "/api/basket/:basketUUID",this::addItem)
-      ).withTopics(
-          //topic("hello-events", this::helloEvents)
-          // Kafka partitions messages, messages within the same partition will
-          // be delivered in order, to ensure that all messages for the same user
-          // go to the same partition (and hence are delivered in order with respect
-          // to that user), we configure a partition key strategy that extracts the
-          // name as the partition key.
-         // .withProperty(KafkaProperties.partitionKeyStrategy(), BasketEvent::getName)
-        ).withAutoAcl(true);
+      ).withTopics().withAutoAcl(true);
   }
 }

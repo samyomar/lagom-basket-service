@@ -5,12 +5,16 @@ import akka.NotUsed;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
 import akka.cluster.sharding.typed.javadsl.EntityRef;
+import akka.japi.Pair;
 import com.elmenus.basket.api.*;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.transport.BadRequest;
+import com.lightbend.lagom.javadsl.api.transport.ResponseHeader;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
 
 import com.elmenus.basket.impl.BasketCommand.*;
+import com.lightbend.lagom.javadsl.server.HeaderServiceCall;
+import lombok.extern.java.Log;
 
 import javax.inject.Inject;
 import java.time.Duration;
@@ -19,6 +23,7 @@ import java.util.*;
 /**
  * Implementation of the BasketService.
  */
+@Log
 public class BasketServiceImpl implements BasketService {
 
   private final PersistentEntityRegistry persistentEntityRegistry;
@@ -52,29 +57,31 @@ public class BasketServiceImpl implements BasketService {
 
 
 
+
   @Override
   public ServiceCall<NotUsed, BasketView> getBasket(UUID basketUUID) {
     return request ->
             entityRef(basketUUID)
                     .ask(BasketCommand.GetBasketCommand::new, askTimeout)
-                    .thenApply(summary -> asBasketView(basketUUID.toString(), summary));
+                    .thenApply(summary -> asBasketView(basketUUID.toString(),summary));
   }
 
   @Override
-  public ServiceCall<BasketItem, Done> addItem(UUID basketUUID) {
-      return basketItem ->  entityRef(basketUUID)
-              .<BasketCommand.Confirmation>ask(replyTo -> new BasketCommand.AddItemCommand(
-                      basketItem.itemId
-                      ,basketItem.userUuid
-                      ,basketItem.quantity
-                      ,basketItem.price
-                      , replyTo)
-                      ,askTimeout)
-              .thenApply(this::handleConfirmation)
-              .thenApply(accepted -> Done.getInstance());
-  }
-
-
+  public HeaderServiceCall<BasketItem, Done> addItem(UUID basketUUID) {
+    ResponseHeader responseHeader = ResponseHeader.OK;
+      return (requestHeader,basketItem) -> {
+         return entityRef(basketUUID)
+                .<BasketCommand.Confirmation>ask(replyTo -> new BasketCommand.AddItemCommand(
+                                  requestHeader.getHeader("UserUuid").orElse(null)
+                                , basketItem.uuid
+                                , basketItem.quantity
+                                , basketItem.price
+                                , replyTo)
+                        , askTimeout)
+                .thenApply(this::handleConfirmation)
+                .thenApply(accepted -> Pair.create(responseHeader, Done.getInstance()));
+      };
+      }
 
   /**
    * Try to converts Confirmation to a Accepted
@@ -91,8 +98,22 @@ public class BasketServiceImpl implements BasketService {
   }
 
   private BasketView asBasketView(String id, BasketCommand.Summary summary) {
-    return new BasketView(id, summary.userID,summary.items, summary.subTotal+"",summary.tax+"",summary.total+"");
+    List<BasketItem> basketItemList= new ArrayList();
+    for(ItemDTO item:summary.items){
+      basketItemList.add( new BasketItem(item.itemUuid,formatToString(item.quantity),formatToString(item.price)));
+    }
+    return new BasketView(id, summary.userID,basketItemList, formatToString(summary.subTotal),formatToString(summary.tax),formatToString(summary.total));
   }
+
+
+  public static String formatToString(double d)
+  {
+    if(d == (long) d)
+      return String.format("%d",(long)d);
+    else
+      return String.format("%s",d);
+  }
+
 
 
 }

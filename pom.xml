@@ -12,9 +12,6 @@
     <modules>
         <module>basket-api</module>
         <module>basket-impl</module>
-        <module>stream-api</module>
-        <module>stream-impl</module>
-        <module>integration-tests</module>
     </modules>
 
     <build>

@@ -1,6 +1,5 @@
 package com.elmenus.basket.impl;
 
-import com.elmenus.basket.api.ItemDTO;
 import lombok.Value;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -24,17 +23,17 @@ public final class BasketState implements CompressedJsonable {
 
  // public static final BasketState INITIAL = new BasketState("Hello", LocalDateTime.now().toString());
   public final String userUuid;
-  public final List<ItemDTO> basketItems;
+  public final List<ItemDTO> items;
   public final float subTotal;
-  public final float tax;
+  public final float taxPercentage;
   public final float total;
 
   @JsonCreator
-  public BasketState(String userUuid, List<ItemDTO> basketItems, float subTotal, float tax, float total) {
+  public BasketState(String userUuid, List<ItemDTO> items, float subTotal, float taxPercentage, float total) {
     this.userUuid = userUuid;
-    this.basketItems = Preconditions.checkNotNull(basketItems,"items list/set is null");
+    this.items = Preconditions.checkNotNull(items,"items list/set is null");
     this.subTotal = subTotal;
-    this.tax = tax;
+    this.taxPercentage = taxPercentage;
     this.total = total;
   }
 
@@ -44,7 +43,7 @@ public final class BasketState implements CompressedJsonable {
   {
       if(!items.isEmpty()) {
           for (int i = 0; i < items.size(); i++) {
-              if (items.get(i).getUuid().equals(newItem.getUuid())) {
+              if (items.get(i).itemUuid.equals(newItem.itemUuid)) {
                   items.set(i, newItem);
                   return;
               }
@@ -54,40 +53,48 @@ public final class BasketState implements CompressedJsonable {
       return ;
   }
 
-  public BasketState addOrUpdateItem(String userUuid, String itemUuid, int quantity, float price,float tax) {
+
+  // check if this basket state already contained this userID or not.
+    // it will return true if the state object already has another userID assigned.
+  public boolean hasAnotherUser(String userUuid)
+  {
+      return (this.userUuid!=null && !this.userUuid.trim().isEmpty() && !this.userUuid.equals(userUuid));
+  }
+
+  public BasketState addOrUpdateItem(String userUuid, String itemUuid, int quantity, float price,float taxPercentage) {
 
       // get all the event meta data here including the updated tax.
       // calculate everything and return new status with the updated final calculations
-      log.severe("I came here with basketItems" + basketItems );
-      List<ItemDTO> newBasketItems = new ArrayList<ItemDTO>();
-      newBasketItems.addAll(basketItems);
+      List<ItemDTO> newItems = new ArrayList<ItemDTO>();
+      newItems.addAll(items);
       //List<ItemDTO> newBasketItems =
-      updateItemsList(newBasketItems , new ItemDTO(itemUuid,quantity+"",price+""));
-
-      log.severe("after the loop with list size = " + newBasketItems.size());
+      updateItemsList(newItems , new ItemDTO(itemUuid,quantity,price));
       // It will be faster to calculate only the delta change using the new item QTY and Price,
       // but it will be more generic and maintainable to calculate it based on the items set, as this same calculations will be user later from removeItem or any similar function.
-      float newSubTotal = calculateSubTotal(newBasketItems);
-      float newTotal = calculateTotal(newSubTotal , tax);
+      float newSubTotal = calculateSubTotal(newItems);
+      float newTotal = calculateTotal(newSubTotal , taxPercentage);
 
      // log.severe("item values in add and remove items" + item.toString());
-    return new BasketState(userUuid,newBasketItems,newSubTotal,tax,newTotal);
+    return new BasketState(userUuid,newItems,newSubTotal,taxPercentage,newTotal);
   }
 
-  private float calculateSubTotal(List<ItemDTO> newBasketItems)
+  private float calculateSubTotal(List<ItemDTO> newItems)
   {
       float newSubTotal = 0;
-      for(ItemDTO item:newBasketItems)
+      for(ItemDTO item:newItems)
       {
-          newSubTotal += Float.parseFloat(item.price) * Integer.parseInt(item.quantity);
+          //newSubTotal += Float.parseFloat(item.price) * Integer.parseInt(item.quantity);
+          newSubTotal +=  item.price *  item.quantity;
       }
        return newSubTotal;
      // basketItems.stream().forEach( (item) -> {subTotal2 = Float.parseFloat(item.price) * Integer.parseInt(item.price);});
   }
 
-  private float calculateTotal(float newSubTotal , float newTax)
+  private float calculateTotal(float newSubTotal , float newTaxPercentage)
   {
-      return newSubTotal + newTax ;
+      return newSubTotal * ( 1  + (newTaxPercentage/100) );
   }
+
+
 
 }

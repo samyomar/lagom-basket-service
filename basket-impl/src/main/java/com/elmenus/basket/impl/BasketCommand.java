@@ -1,7 +1,7 @@
 package com.elmenus.basket.impl;
 
 import akka.actor.typed.ActorRef;
-import com.elmenus.basket.api.ItemDTO;
+import com.elmenus.basket.api.BasketItem;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
@@ -10,7 +10,6 @@ import com.lightbend.lagom.serialization.Jsonable;
 import lombok.Value;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -25,16 +24,16 @@ public interface BasketCommand extends Jsonable {
   @Value
   @JsonDeserialize
   static final class AddItemCommand implements BasketCommand, CompressedJsonable {
-    public final UUID itemId;
-    public final UUID userId;
-    public final int quantity;
-    public final float price;
+    public final String userUuid;
+    public final String itemUuid;
+    public final String quantity;
+    public final String price;
     public final ActorRef<Confirmation> replyTo;
 
     @JsonCreator
-    AddItemCommand(UUID itemId, UUID userId , int quantity, float price, ActorRef<Confirmation> replyTo) {
-      this.itemId = Preconditions.checkNotNull(itemId, "itemId is missing");
-      this.userId = Preconditions.checkNotNull(userId, "user Id is missing");
+    AddItemCommand(String userUuid ,String itemUuid, String quantity, String price, ActorRef<Confirmation> replyTo) {
+      this.userUuid = Preconditions.checkNotNull(userUuid, "user UUID is missing");
+      this.itemUuid = Preconditions.checkNotNull(itemUuid, "item UUID is missing");
       this.quantity = quantity;
       this.price = price;
       this.replyTo = replyTo;

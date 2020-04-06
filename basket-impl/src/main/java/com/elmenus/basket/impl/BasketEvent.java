@@ -1,6 +1,5 @@
 package com.elmenus.basket.impl;
 
-import com.elmenus.basket.api.ItemDTO;
 import com.lightbend.lagom.javadsl.persistence.AggregateEvent;
 import com.lightbend.lagom.javadsl.persistence.AggregateEventShards;
 import com.lightbend.lagom.javadsl.persistence.AggregateEventTag;
@@ -9,7 +8,6 @@ import lombok.Value;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.Preconditions;
 import com.lightbend.lagom.serialization.Jsonable;
 
 /**
@@ -42,16 +40,16 @@ public interface BasketEvent extends Jsonable, AggregateEvent<BasketEvent> {
     public final String itemUuid;
     public final int quantity;
     public final float price;
-    public final float tax;
+    public final float taxPercentage;
 
     @JsonCreator
-    public ItemAddedEvent(String uuid,  String userUuid , String itemUuid, int quantity, float price, float tax) {
+    public ItemAddedEvent(String uuid,  String userUuid , String itemUuid, int quantity, float price, float taxPercentage) {
        this.uuid= uuid;
        this.userUuid=userUuid;
        this.itemUuid = itemUuid;
        this.quantity=quantity;
        this.price=price;
-       this.tax=tax;
+       this.taxPercentage=taxPercentage;
     }
 
   }

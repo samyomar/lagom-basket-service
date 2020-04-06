@@ -5,8 +5,13 @@ import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
 import akka.persistence.typed.PersistenceId;
 import akka.persistence.typed.javadsl.*;
 import com.lightbend.lagom.javadsl.persistence.AkkaTaggerAdapter;
+import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import lombok.extern.java.Log;
+
+import java.time.Instant;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 /**
 * This is an event sourced aggregate. It has a state, {@link BasketState}, which
@@ -37,6 +42,7 @@ public class BasketAggregate extends EventSourcedBehaviorWithEnforcedReplies<Bas
 
   final private EntityContext<BasketCommand> entityContext;
   final private String entityId;
+  final private float taxPercentage = 10;
 
   BasketAggregate(EntityContext<BasketCommand> entityContext) {
     super(
@@ -59,67 +65,103 @@ public class BasketAggregate extends EventSourcedBehaviorWithEnforcedReplies<Bas
   }
 
 
+
+
   @Override
   public CommandHandlerWithReply<BasketCommand, BasketEvent, BasketState> commandHandler() {
-
     CommandHandlerWithReplyBuilder<BasketCommand, BasketEvent, BasketState> builder = newCommandHandlerWithReplyBuilder();
-
-    /*
-     * Command handler for the AddItem command.
-     */
-    builder.forAnyState()
-            .onCommand(BasketCommand.AddItemCommand.class, (state, cmd) ->
-                    Effect()
-                            // In response to this command, we want to first persist it as a
-                            // GreetingMessageChanged event
-                            .persist(new BasketEvent.ItemAddedEvent(entityId,cmd.userId.toString(),cmd.itemId.toString(),cmd.quantity,cmd.price,getTaxValue()))
-                            // Then once the event is successfully persisted, we respond with done.
-                            .thenReply(cmd.replyTo, s -> new BasketCommand.Accepted(toSummary(s)))
-            );
-
-    builder.forAnyState()
-            .onCommand(BasketCommand.GetBasketCommand.class, (state, cmd) ->
-             Effect().none()
-                     .thenReply(cmd.replyTo, s -> toSummary(s))
-            );
-
+    //Command handler for the AddItem command.
+    builder.forAnyState().onCommand(BasketCommand.AddItemCommand.class, this::onAddOrUpdateItem)
+                         .onCommand(BasketCommand.GetBasketCommand.class, this::onGetBasketInfo);
     return builder.build();
+  }
 
+
+  private ReplyEffect<BasketEvent, BasketState> onGetBasketInfo(BasketState basketState, BasketCommand.GetBasketCommand cmd) {
+    return Effect().none().thenReply(cmd.replyTo, s -> toSummary(s));
+  }
+
+  private ReplyEffect<BasketEvent, BasketState> onAddOrUpdateItem(BasketState basketState, BasketCommand.AddItemCommand cmd) {
+    if(cmd.userUuid==null || cmd.userUuid.trim().isEmpty()){
+      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected("User ID is missing"));
+    }else if (!isUUID(cmd.userUuid)) {
+      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected(cmd.userUuid + " User ID is not a valid UUID."));
+    } else if (!isUUID(cmd.itemUuid)) {
+      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected("Item ID is not a valid UUID."));
+    }else if (basketState.hasAnotherUser(cmd.userUuid)) {
+      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected("This Basket belongs to another user, Access Denied."));
+    } else if(!isNumeric(cmd.quantity)){
+      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected("Quantity is not a valid numerical value"));
+    } else if(!isNumeric(cmd.price)){
+      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected("Price is not a valid numerical value"));
+    } else if (Integer.parseInt(cmd.quantity) <= 0) {
+      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected("Quantity must be greater than zero"));
+    } else if (Float.parseFloat(cmd.getPrice()) < 0) {
+      return Effect().reply(cmd.replyTo, new BasketCommand.Rejected("Item Price can not be less than zero"));
+    } else {
+      return Effect()
+              .persist(new BasketEvent.ItemAddedEvent(entityId, cmd.userUuid, cmd.itemUuid, Integer.parseInt(cmd.quantity), Float.parseFloat(cmd.price), getTaxPercentage()))
+              .thenReply(cmd.replyTo, s -> new BasketCommand.Accepted(toSummary(s)))
+              ;
+    }
   }
 
 
   @Override
   public EventHandler<BasketState, BasketEvent> eventHandler() {
     EventHandlerBuilder<BasketState, BasketEvent> builder = newEventHandlerBuilder();
-
-    /*
-     * Event handler for the GreetingMessageChanged event.
-     */
     builder.forAnyState()
       .onEvent(BasketEvent.ItemAddedEvent.class, (state, evt) ->
-        // We simply update the current state to use the greeting message from
-        // the event.
-        state.addOrUpdateItem(evt.userUuid,evt.itemUuid,evt.quantity,evt.price,evt.tax)
+        state.addOrUpdateItem(evt.userUuid,evt.itemUuid,evt.quantity,evt.price,evt.taxPercentage)
       );
     return builder.build();
   }
 
 
   @Override
-  public Set<String> tagsFor(BasketEvent shoppingCartEvent) {
-    return AkkaTaggerAdapter.fromLagom(entityContext, BasketEvent.TAG).apply(shoppingCartEvent);
+  public Set<String> tagsFor(BasketEvent basketEvent) {
+    return AkkaTaggerAdapter.fromLagom(entityContext, BasketEvent.TAG).apply(basketEvent);
   }
 
 
   private BasketCommand.Summary toSummary(BasketState basketState) {
-    log.severe("basketstate before being summary" + basketState.toString());
-    return new BasketCommand.Summary(basketState.basketItems,basketState.userUuid,basketState.subTotal,basketState.tax,basketState.total);
+    return new BasketCommand.Summary(basketState.items,basketState.userUuid,basketState.subTotal,basketState.taxPercentage,basketState.total);
   }
 
-  float getTaxValue()
+
+
+  float getTaxPercentage()
   {
      // for demo purposes this value is hardcoded here, it should come from a DB or from a service lookup.
-     return 5;
+    //  this 10% of any subtotal.
+     return taxPercentage;
   }
+
+  static boolean isNumeric(String str) {
+    try
+    {
+      Double.parseDouble(str);
+      return true;
+    } catch(NumberFormatException e)
+    {
+      return false;
+    }
+    catch(NullPointerException e)
+    {
+      return false;
+    }
+  }
+
+  static boolean isUUID(String string) {
+    try {
+      UUID temp = UUID.fromString(string);
+      return true;
+    } catch (Exception ex) {
+      log.severe(ex.getMessage());
+      ex.printStackTrace();
+      return false;
+    }
+  }
+
 
 }

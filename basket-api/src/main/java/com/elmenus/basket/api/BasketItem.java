@@ -14,17 +14,18 @@ import java.util.UUID;
 @JsonDeserialize
 public final class BasketItem {
 
-    public final UUID itemId;
-    public final UUID userUuid;
-    public final int quantity;
-    public final float price;
 
-    @JsonCreator
-    public BasketItem(UUID itemId, UUID userUuid,  int quantity, float price) {
-        this.itemId = Preconditions.checkNotNull(itemId, "Item id is missing");
-        this.userUuid=Preconditions.checkNotNull(userUuid,"User ID is empty");
+    public final String uuid;
+    public final String quantity;
+    public final String price;
+
+
+   @JsonCreator
+    public BasketItem(String uuid,  String quantity, String price) {
+        this.uuid = Preconditions.checkNotNull(uuid, "Item UUID is missing");
         this.quantity = quantity;
         this.price = price;
     }
+
 
 }
