@@ -105,16 +105,20 @@ Hint: you can get random UUID simply using this simple curl command
 curl https://www.uuidgenerator.net/api/version4	)
 ```
 
-***Note: 
+**** Note:
+
 PUT is used to create or update a resource , so if you try to insert the same item multiple times it will only replace it because PUT is idempotent.
 
-#### Assumptions & Future Work:
-- UserID value should be taken from Header, for simplicity we send it in PUT body.
-- Tax value is hardcoded for simplicity, it should be retrived dynamically from DB, external service or configuration files.
-- Communication with other services should be done by publishing an event to Kafka topic, or consumming from other subscribed topics.
-- Security checks needs to be implemented (authintication & authorization). So currently if userID is changed for the same basket ID it will just replace it with the new userID (a security validation should be added).
-- Unit Testing should be added.
-- Business validations should be added like item QTY and price should not be > zero.
+**** Run Unit Tests
+
+To run the unit tests, use this command
+```
+mvn test -Dtest=BasketServiceTesting -DfailIfNoTests=false
+```
+
+#### Assumptions:
+- Tax percentage is hardcoded for simplicity, it should be retrived dynamically from DB, external service or configuration files.
+- For simplicity we did not implement security checks (authintication & authorization).
 
 #### Prerequisites
 to understand Lagom framework properly you need to be familiar with the following concepts:
